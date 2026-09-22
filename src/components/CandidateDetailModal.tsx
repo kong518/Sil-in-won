@@ -51,6 +51,7 @@ export default function CandidateDetailModal({
         disabilityType: '',
         disabilityGrade: '',
         complexDisability: false,
+        complexDisabilityType: '',
         fundingNational: '',
         fundingProvincial: '',
         fundingCity: '',
@@ -233,23 +234,74 @@ export default function CandidateDetailModal({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {activeTab === 'info' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-6">
               
-              {/* Left Column: Core Info */}
+              {/* 기본 대기 및 인적정보 */}
               <div className="space-y-4 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
                   <Heart className="w-4 h-4 text-emerald-500" />
                   기본 대기 및 인적정보
                 </h3>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* 성명, 생년월일, 성별, 연락처 */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">구분</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">성명</label>
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="성함 입력"
+                      value={formData.name || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">생년월일</label>
+                    <input
+                      type="text"
+                      name="birthDate"
+                      placeholder="생년월일 (예시: 940322)"
+                      value={formData.birthDate || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">성별</label>
+                    <select
+                      name="gender"
+                      value={formData.gender || '남'}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold"
+                    >
+                      <option value="남">남성</option>
+                      <option value="여">여성</option>
+                      <option value="기타">기타</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">연락처</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      placeholder="010-0000-0000"
+                      value={formData.phone || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+                    />
+                  </div>
+                </div>
+
+                {/* 구분, 접수일, 접수자 */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">구분</label>
                     <select
                       name="category"
                       value={formData.category || '대기'}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold"
                     >
                       <option value="대기">대기</option>
                       <option value="삭제">삭제</option>
@@ -258,262 +310,221 @@ export default function CandidateDetailModal({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">접수일</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">접수일</label>
                     <input
                       type="date"
                       name="registrationDate"
                       value={formData.registrationDate || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">성명</label>
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="성함 입력"
-                      value={formData.name || ''}
-                      onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">접수자</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">접수자</label>
                     <input
                       type="text"
                       name="registrar"
                       placeholder="직원 성명"
                       value={formData.registrar || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* 장애유형, 급수 (장애정도), 중복 장애 여부 */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">생년월일</label>
-                    <input
-                      type="text"
-                      name="birthDate"
-                      placeholder="생년월일 (예시: 940322)"
-                      value={formData.birthDate || ''}
-                      onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">성별</label>
-                    <select
-                      name="gender"
-                      value={formData.gender || '남'}
-                      onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                    >
-                      <option value="남">남성</option>
-                      <option value="여">여성</option>
-                      <option value="기타">기타</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">장애유형</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">장애유형</label>
                     <input
                       type="text"
                       name="disabilityType"
                       placeholder="예) 지체장애, 자폐성장애"
                       value={formData.disabilityType || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">급수 (장애정도)</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">급수 (장애정도)</label>
                     <input
                       type="text"
                       name="disabilityGrade"
                       placeholder="예) 중증 1급, 경증"
                       value={formData.disabilityGrade || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                     />
                   </div>
+                  <div className="flex items-center gap-2 pb-3.5 pl-1">
+                    <input
+                      type="checkbox"
+                      id="complexDisability"
+                      name="complexDisability"
+                      checked={formData.complexDisability || false}
+                      onChange={handleCheckboxChange}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4.5 w-4.5 cursor-pointer"
+                    />
+                    <label htmlFor="complexDisability" className="text-[13px] font-bold text-slate-700 cursor-pointer select-none">
+                      중복 장애 여부
+                    </label>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-2">
-                  <input
-                    type="checkbox"
-                    id="complexDisability"
-                    name="complexDisability"
-                    checked={formData.complexDisability || false}
-                    onChange={handleCheckboxChange}
-                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
-                  />
-                  <label htmlFor="complexDisability" className="text-xs font-semibold text-slate-600 cursor-pointer">
-                    복합장애 동반 여부
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">연락처</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    placeholder="010-0000-0000"
-                    value={formData.phone || ''}
-                    onChange={handleInputChange}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                  />
-                </div>
+                {/* 중복장애 활성화 시 나타나는 추가 입력란 */}
+                {formData.complexDisability && (
+                  <div className="p-3.5 bg-emerald-50/60 border border-emerald-100/90 rounded-xl space-y-2.5">
+                    <div>
+                      <label className="block text-[13px] font-bold text-emerald-800 mb-1.5">중복장애 장애유형</label>
+                      <input
+                        type="text"
+                        name="complexDisabilityType"
+                        placeholder="중복장애의 장애유형을 작성해 주세요. (예: 지적장애, 뇌병변장애 등)"
+                        value={formData.complexDisabilityType || ''}
+                        onChange={handleInputChange}
+                        className="w-full text-[13px] p-2.5 border border-emerald-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-white text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Right Column: Address and Funding */}
-              <div className="space-y-6">
-                
-                {/* Funding Checklist */}
-                <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm space-y-3">
-                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                    <Shield className="w-4 h-4 text-emerald-500" />
-                    재원 구분 (체크 수치 입력)
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1">국비 (수치)</label>
-                      <input
-                        type="text"
-                        name="fundingNational"
-                        placeholder="예) 120"
-                        value={formData.fundingNational || ''}
-                        onChange={handleInputChange}
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1">도비 (수치)</label>
-                      <input
-                        type="text"
-                        name="fundingProvincial"
-                        placeholder="예) 120"
-                        value={formData.fundingProvincial || ''}
-                        onChange={handleInputChange}
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1">시비 (수치)</label>
-                      <input
-                        type="text"
-                        name="fundingCity"
-                        placeholder="예) 120"
-                        value={formData.fundingCity || ''}
-                        onChange={handleInputChange}
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Combined Address Details */}
-                <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm space-y-3">
-                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                    <Navigation className="w-4 h-4 text-emerald-500" />
-                    주소 관리
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 mb-1">시/도</label>
-                      <input
-                        type="text"
-                        name="addressCity"
-                        placeholder="예) 수원시"
-                        value={formData.addressCity || ''}
-                        onChange={handleInputChange}
-                        className="w-full text-xs p-2 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 mb-1">구</label>
-                      <input
-                        type="text"
-                        name="addressDistrict"
-                        placeholder="예) 영통구"
-                        value={formData.addressDistrict || ''}
-                        onChange={handleInputChange}
-                        className="w-full text-xs p-2 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 mb-1">동</label>
-                      <input
-                        type="text"
-                        name="addressDong"
-                        placeholder="예) 매탄동"
-                        value={formData.addressDong || ''}
-                        onChange={handleInputChange}
-                        className="w-full text-xs p-2 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                  </div>
+              {/* 활동지원급여 */}
+              <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm space-y-3">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  활동지원급여
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 mb-1">세부 상세 주소</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">국비</label>
                     <input
                       type="text"
-                      name="addressDetail"
-                      placeholder="예) 삼성로 123번길 10, 동/호수 등"
-                      value={formData.addressDetail || ''}
+                      name="fundingNational"
+                      placeholder="예) 120"
+                      value={formData.fundingNational || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">도비</label>
+                    <input
+                      type="text"
+                      name="fundingProvincial"
+                      placeholder="예) 120"
+                      value={formData.fundingProvincial || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">시비</label>
+                    <input
+                      type="text"
+                      name="fundingCity"
+                      placeholder="예) 120"
+                      value={formData.fundingCity || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                     />
                   </div>
                 </div>
-
               </div>
 
-              {/* Bottom: Service Content & Special instruction combined details */}
-              <div className="md:col-span-2 bg-white p-5 rounded-xl border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              {/* 주소 관리 */}
+              <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm space-y-3">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                  <Navigation className="w-4 h-4 text-emerald-500" />
+                  주소 관리
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">시/도</label>
+                    <input
+                      type="text"
+                      name="addressCity"
+                      placeholder="예) 수원시"
+                      value={formData.addressCity || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 font-bold placeholder:text-slate-400 bg-slate-50/50 placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">구</label>
+                    <input
+                      type="text"
+                      name="addressDistrict"
+                      placeholder="예) 영통구"
+                      value={formData.addressDistrict || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 font-bold placeholder:text-slate-400 bg-slate-50/50 placeholder:font-normal"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">동</label>
+                    <input
+                      type="text"
+                      name="addressDong"
+                      placeholder="예) 매탄동"
+                      value={formData.addressDong || ''}
+                      onChange={handleInputChange}
+                      className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 font-bold placeholder:text-slate-400 bg-slate-50/50 placeholder:font-normal"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-bold text-slate-700 mb-1.5">세부 상세 주소</label>
+                  <input
+                    type="text"
+                    name="addressDetail"
+                    placeholder="예) 삼성로 123번길 10, 동/호수 등"
+                    value={formData.addressDetail || ''}
+                    onChange={handleInputChange}
+                    className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 font-bold placeholder:text-slate-400 bg-slate-50/50 placeholder:font-normal"
+                  />
+                </div>
+              </div>
+
+              {/* 서비스 의뢰 상세 및 대기 특이사항 */}
+              <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm space-y-4">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
                   <Sparkles className="w-4 h-4 text-emerald-500" />
                   서비스 의뢰 상세 및 대기 특이사항
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">서비스 요청 상세 내용</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">서비스 요청 상세 내용</label>
                     <textarea
                       name="serviceContent"
                       rows={3}
                       placeholder="요구하시는 구체적인 서비스 지원 방향 기술"
                       value={formData.serviceContent || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">특이사항</label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-1.5">특이사항</label>
                     <textarea
                       name="specialNotes"
                       rows={3}
                       placeholder="일상생활 시 유의해야 할 돌발 특성, 보조기구 장착 여부 등"
                       value={formData.specialNotes || ''}
                       onChange={handleInputChange}
-                      className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                      className="w-full text-[13px] p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">기타 종합 비고</label>
+                  <label className="block text-[13px] font-bold text-slate-700 mb-1.5">기타 종합 비고</label>
                   <input
                     type="text"
                     name="remarks"
                     placeholder="기타 비고 또는 참고 설명 작성"
                     value={formData.remarks || ''}
                     onChange={handleInputChange}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50"
+                    className="w-full text-[13px] p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none bg-slate-50/50 text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
                   />
                 </div>
               </div>

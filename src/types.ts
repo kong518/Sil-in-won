@@ -21,7 +21,8 @@ export interface Candidate {
   gender: '남' | '여' | '기타'; // 성별
   disabilityType: string; // 장애유형
   disabilityGrade: string; // 급수
-  complexDisability: boolean; // 복합장애 여부
+  complexDisability: boolean; // 중복장애 여부 (기존 복합장애)
+  complexDisabilityType?: string; // 중복장애 장애유형
   fundingNational: string; // 국비 (예: 120)
   fundingProvincial: string; // 도비 (예: 120)
   fundingCity: string; // 시비 (예: 120)
