@@ -60,7 +60,7 @@ export default function GoogleDriveSyncModal({
 
   if (!isOpen) return null;
 
-  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-6wrb5nktj2mlgfjyvceasc-324830255896.asia-northeast1.run.app';
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://silinwon.vercel.app';
 
   // Apps Script code for menu shortcut only (when using Google Direct OAuth sync)
   const menuAppsScriptCode = `function onOpen() {

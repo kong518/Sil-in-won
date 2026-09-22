@@ -294,6 +294,8 @@ export default function App() {
           } catch {
             setCandidates(deduplicateCandidates(INITIAL_CANDIDATES));
           }
+        } else {
+          setCandidates(deduplicateCandidates(INITIAL_CANDIDATES));
         }
       }
     );
