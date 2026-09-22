@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>이용대기명단</title>
+    <meta name="description" content="접수일 및 추가 상담년도를 기준으로 이용대기명단을 정리하고, 매칭과정 기록지 자동 작성 및 인쇄를 지원하는 관리 프로그램입니다." />
+    <meta property="og:title" content="이용대기명단" />
+    <meta property="og:description" content="접수일 및 추가 상담년도를 기준으로 이용대기명단을 정리하고, 매칭과정 기록지 자동 작성 및 인쇄를 지원하는 관리 프로그램입니다." />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="대기명단정리" />
+    <link rel="apple-touch-icon" href="/app-icon.png" />
+    <link rel="icon" type="image/png" href="/app-icon.png" />
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((reg) => {
+              console.log('서비스 워커가 등록되었습니다:', reg.scope);
+            })
+            .catch((err) => {
+              console.error('서비스 워커 등록 실패:', err);
+            });
+        });
+      }
+    </script>
+    <meta name="theme-color" content="#059669" />
+    <!-- Google Identity Services client for OAuth token acquisition -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

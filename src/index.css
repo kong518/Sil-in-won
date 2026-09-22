@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans KR", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc; /* solid light slate-50 */
+}
+
+/* Custom gorgeous scrollbars for lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* HIGH-CRAFTSMANSHIP PRINT STYLES */
+@media print {
+  /* Set print layout details */
+  @page {
+    size: landscape;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+  
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10px !important; /* Scale down slightly to fit columns */
+    font-family: var(--font-sans) !important;
+  }
+
+  /* Force print colored badges clearly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-scheme: light !important;
+  }
+
+  /* Prevent row orphans across pages */
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Hide raw interactive nodes during printing */
+  .print\:hidden,
+  header,
+  section.print\:hidden,
+  button,
+  input,
+  textarea,
+  select,
+  footer {
+    display: none !important;
+  }
+
+  /* Force table container to full width and disable shadows */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  table {
+    width: 100% !important;
+    min-width: 100% !important;
+    border-collapse: collapse !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  th, td {
+    border: 1px solid #e2e8f0 !important;
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold !important;
+    color: #1e293b !important;
+  }
+
+  tr:hover {
+    background-color: transparent !important;
+  }
+}

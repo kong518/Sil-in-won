@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "Candidate": {
+      "title": "Candidate",
+      "description": "복지관 이용대기자 통합 명단",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "gender": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "disabilityType": { "type": "string" },
+        "disabilityGrade": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "registrationDate": { "type": "string" },
+        "registrar": { "type": "string" },
+        "serviceContent": { "type": "string" },
+        "specialNotes": { "type": "string" },
+        "remarks": { "type": "string" },
+        "consultationLogs": { "type": "array" },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "MatchingRecord": {
+      "title": "MatchingRecord",
+      "description": "매칭과정 기록지",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userName": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "steps": { "type": "array" },
+        "resultType": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["id", "userName"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "수원시장애인종합복지관 직원 프로필 (@suwonrehab.or.kr)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "department": { "type": "string" },
+        "lastLoginAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/candidates/{candidateId}": {
+      "schema": "Candidate",
+      "description": "수원시장애인종합복지관 이용대기자 명단 (suwonrehab.or.kr 인증 전용)"
+    },
+    "/matching_records/{recordId}": {
+      "schema": "MatchingRecord",
+      "description": "매칭과정 기록지 (suwonrehab.or.kr 인증 전용)"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "사용자 계정 정보 (suwonrehab.or.kr 인증 전용)"
+    }
+  }
+}

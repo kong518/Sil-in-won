@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 수원시장애인종합복지관 구글 워크스페이스(@suwonrehab.or.kr) 인증 사용자만 접근 허용
+    function isSuwonStaff() {
+      return request.auth != null 
+        && request.auth.token.email != null 
+        && request.auth.token.email.matches('^[a-zA-Z0-9._%+-]+@suwonrehab\\.or\\.kr$')
+        && request.auth.token.email_verified == true;
+    }
+
+    // 대기자 명단 데이터: @suwonrehab.or.kr 직원만 읽기/쓰기 허용
+    match /candidates/{candidateId} {
+      allow read, write: if isSuwonStaff();
+    }
+
+    // 대기자 명단 1회 읽기 최적화 묶음 마스터: @suwonrehab.or.kr 직원만 읽기/쓰기 허용
+    match /candidate_master/{docId} {
+      allow read, write: if isSuwonStaff();
+    }
+
+    // 매칭과정 기록지: @suwonrehab.or.kr 직원만 읽기/쓰기 허용
+    match /matching_records/{recordId} {
+      allow read, write: if isSuwonStaff();
+    }
+
+    // 사용자 프로필: @suwonrehab.or.kr 직원만 접근 허용
+    match /users/{userId} {
+      allow read, write: if isSuwonStaff();
+    }
+
+    // 미인증 및 기타 도메인 접근 전면 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

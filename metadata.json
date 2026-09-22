@@ -1,0 +1,8 @@
+{
+  "name": "이용대기명단",
+  "description": "접수일 및 추가 상담년도를 기준으로 이용대기명단을 정리하고, 매칭과정 기록지 자동 작성 및 인쇄를 지원하는 관리 프로그램입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
