@@ -330,51 +330,70 @@ export default function ExcelImporter({ onImport }: ExcelImporterProps) {
         return;
       }
 
-      // Filter out clean visual empty lines
+      // Filter out empty rows (where all cells are empty)
       const filtered = rawRows.filter(row => row && row.length > 0 && row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== ''));
-      if (filtered.length < 2) {
-        setErrorMessage('헤더행을 파싱했으나, 그 아래의 실제 인적 데이터가 포함되어 있지 않습니다.');
+      if (filtered.length === 0) {
+        setErrorMessage('가져올 수 있는 데이터 행이 없습니다.');
         return;
       }
 
-      const headers = filtered[0].map(h => String(h || '').trim());
-      
-      // Match column keywords explicitly
-      let map: Record<string, number> = {};
-      headers.forEach((field, idx) => {
-        const clean = field.replace(/\s+/g, '');
-        if (clean.includes('구분')) map.category = idx;
-        else if (clean.includes('접수일')) map.registrationDate = idx;
-        else if (clean.includes('접수자')) map.registrar = idx;
-        else if (clean === '성명' || clean === '이름' || (clean.includes('성명') && !clean.includes('접수'))) map.name = idx;
-        else if (clean.includes('생년월일') || clean.includes('생년') || clean.includes('주민번호')) map.birthDate = idx;
-        else if (clean.includes('성별')) map.gender = idx;
-        else if (clean.includes('장애유형') || clean.includes('장애형') || clean === '장애명') map.disabilityType = idx;
-        else if (clean.includes('급수') || clean.includes('등급')) map.disabilityGrade = idx;
-        else if (clean.includes('복합')) map.complexDisability = idx;
-        else if (clean.includes('국비')) map.fundingNational = idx;
-        else if (clean.includes('도비')) map.fundingProvincial = idx;
-        else if (clean.includes('시비')) map.fundingCity = idx;
-        else if (clean === '시') map.addressCity = idx;
-        else if (clean === '구') map.addressDistrict = idx;
-        else if (clean === '동') map.addressDong = idx;
-        else if (clean.includes('세부주소') || clean.includes('상세주소') || clean === '주소') {
-          if (map.addressDetail === undefined) map.addressDetail = idx;
-        }
-        else if (clean.includes('연락처') || clean.includes('전화') || clean.includes('핸드폰')) map.phone = idx;
-        else if (clean.includes('서비스내용') || clean.includes('서비스요청') || clean.includes('서비스')) map.serviceContent = idx;
-        else if (clean.includes('특이사항') || clean.includes('특이')) map.specialNotes = idx;
-        else if (clean.includes('상담내역') || clean.includes('상담기록') || clean.includes('상담')) map.consultationLogs = idx;
-        else if (clean.includes('비고')) map.remarks = idx;
-      });
+      // Smart Header Finder: Scan first 15 rows to find the best header row that matches our keywords
+      let headerRowIndex = 0;
+      let maxMatchCount = 0;
+      let bestMap: Record<string, number> = {};
 
-      const essentialKeys = ['category', 'registrationDate', 'name'];
-      const hasEssentials = essentialKeys.every(k => map[k] !== undefined);
-      
-      if (!hasEssentials) {
-        // Sequentially map exact columns schema provided by the user:
-        // 0: 구분, 1: 접수일, 2: 접수자, 3: 성명, 4: 생년월일, 5: 성별, 6: 장애유형, 7: 급수, 8: 복합장애,
-        // 9: 국비, 10: 도비, 11: 시비, 12: 시, 13: 구, 14: 동, 15: 세부주소, 16: 연락처, 17: 서비스내용, 18: 특이사항, 19: 상담내역, 20: 비고
+      const scanLimit = Math.min(filtered.length, 15);
+      for (let r = 0; r < scanLimit; r++) {
+        const row = filtered[r];
+        if (!row) continue;
+
+        const currentMap: Record<string, number> = {};
+        let matchCount = 0;
+
+        row.forEach((cell, idx) => {
+          if (cell === null || cell === undefined) return;
+          const clean = String(cell).replace(/\s+/g, '');
+          if (!clean) return;
+
+          if (clean.includes('구분')) { currentMap.category = idx; matchCount++; }
+          else if (clean.includes('접수일') || clean.includes('등록일') || clean.includes('최초접수')) { currentMap.registrationDate = idx; matchCount++; }
+          else if (clean.includes('접수자') || clean.includes('등록자')) { currentMap.registrar = idx; matchCount++; }
+          else if (clean === '성명' || clean === '이름' || clean === '이용자' || clean === '이용자명' || clean === '이용자성명' || (clean.includes('성명') && !clean.includes('접수'))) { currentMap.name = idx; matchCount++; }
+          else if (clean.includes('생년월일') || clean.includes('생년') || clean.includes('주민번호') || clean.includes('주민등록')) { currentMap.birthDate = idx; matchCount++; }
+          else if (clean.includes('성별')) { currentMap.gender = idx; matchCount++; }
+          else if (clean.includes('장애유형') || clean.includes('장애형') || clean === '장애명' || clean === '장애구분' || clean === '장애종류') { currentMap.disabilityType = idx; matchCount++; }
+          else if (clean.includes('급수') || clean.includes('등급') || clean.includes('장애정도')) { currentMap.disabilityGrade = idx; matchCount++; }
+          else if (clean.includes('복합') || clean.includes('중복')) { currentMap.complexDisability = idx; matchCount++; }
+          else if (clean.includes('국비')) { currentMap.fundingNational = idx; matchCount++; }
+          else if (clean.includes('도비')) { currentMap.fundingProvincial = idx; matchCount++; }
+          else if (clean.includes('시비')) { currentMap.fundingCity = idx; matchCount++; }
+          else if (clean === '시') { currentMap.addressCity = idx; matchCount++; }
+          else if (clean === '구') { currentMap.addressDistrict = idx; matchCount++; }
+          else if (clean === '동') { currentMap.addressDong = idx; matchCount++; }
+          else if (clean.includes('세부주소') || clean.includes('상세주소') || clean === '주소' || clean.includes('거주지') || clean === '소재지') {
+            if (currentMap.addressDetail === undefined) { currentMap.addressDetail = idx; matchCount++; }
+          }
+          else if (clean.includes('연락처') || clean.includes('전화') || clean.includes('핸드폰') || clean.includes('휴대폰') || clean.includes('연락')) { currentMap.phone = idx; matchCount++; }
+          else if (clean.includes('서비스내용') || clean.includes('서비스요청') || clean.includes('서비스') || clean.includes('의뢰상세') || clean.includes('의뢰내용')) { currentMap.serviceContent = idx; matchCount++; }
+          else if (clean.includes('특이사항') || clean.includes('특이') || clean.includes('대기특이') || clean.includes('특기사항')) { currentMap.specialNotes = idx; matchCount++; }
+          else if (clean.includes('상담내역') || clean.includes('상담기록') || clean.includes('상담') || clean.includes('조치') || clean.includes('일지')) { currentMap.consultationLogs = idx; matchCount++; }
+          else if (clean.includes('비고')) { currentMap.remarks = idx; matchCount++; }
+        });
+
+        if (matchCount > maxMatchCount) {
+          maxMatchCount = matchCount;
+          headerRowIndex = r;
+          bestMap = currentMap;
+        }
+      }
+
+      // Determine mapping
+      let map = bestMap;
+      let startRowIndex = headerRowIndex + 1;
+
+      // If we couldn't match at least 2 headers (like Name and at least one other),
+      // fallback to the hardcoded sequential 21-column sequence starting from row 0 (or row 1 if there are many rows)
+      if (maxMatchCount < 2 || map.name === undefined) {
         map = {
           category: 0,
           registrationDate: 1,
@@ -398,11 +417,12 @@ export default function ExcelImporter({ onImport }: ExcelImporterProps) {
           consultationLogs: 19,
           remarks: 20
         };
+        startRowIndex = 1; // standard fallback assumes row 0 is header
       }
 
       const parsedList: Candidate[] = [];
       
-      for (let i = 1; i < filtered.length; i++) {
+      for (let i = startRowIndex; i < filtered.length; i++) {
         const row = filtered[i];
         if (!row || row.length === 0 || row.every(c => c === null || c === undefined || String(c).trim() === '')) {
           continue;
@@ -418,7 +438,7 @@ export default function ExcelImporter({ onImport }: ExcelImporterProps) {
 
         const getBool = (key: string): boolean => {
           const v = getCell(key).toLowerCase();
-          return v === 'y' || v === 'yes' || v === 'o' || v === '참' || v === 'true' || v === '대상' || v === '유' || v === '1' || v.includes('중증');
+          return v === 'y' || v === 'yes' || v === 'o' || v === '참' || v === 'true' || v === '대상' || v === '유' || v === '1' || v.includes('중증') || v.includes('중복');
         };
 
         const rawRegDate = getCell('registrationDate');
@@ -437,8 +457,8 @@ export default function ExcelImporter({ onImport }: ExcelImporterProps) {
           genderVal = '여';
         }
 
-        const candName = getCell('name', '이름없음');
-        if (candName === '성명' || candName === '이름') {
+        const candName = getCell('name', '').trim();
+        if (!candName || candName === '성명' || candName === '이름' || candName === '이름없음') {
           continue;
         }
 

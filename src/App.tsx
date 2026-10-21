@@ -37,7 +37,8 @@ import {
   forceUploadAllToFirestore,
   isAllowedEmail,
   getSavedStaffProfile,
-  StaffProfile
+  StaffProfile,
+  wipeAllData
 } from './services/firebaseService';
 import { 
   FileSpreadsheet, 
@@ -77,9 +78,13 @@ const deduplicateCandidates = (list: Candidate[]): Candidate[] => {
 
   for (const c of sorted) {
     if (!c.name) continue;
-    const nameKey = c.name.trim();
+    const nameKey = c.name.trim().replace(/\s+/g, '');
     const birthDigits = (c.birthDate || '').replace(/[^0-9]/g, '');
-    const uniqueKey = `${nameKey}_${birthDigits}`;
+    const phoneDigits = (c.phone || '').replace(/[^0-9]/g, '');
+    const addressKey = `${c.addressCity || ''}${c.addressDistrict || ''}${c.addressDong || ''}${c.addressDetail || ''}`.trim().replace(/\s+/g, '');
+    
+    // Composite key using name, birth digits, phone, and address to prevent falsely hiding different individuals who share the same name
+    const uniqueKey = `${nameKey}_${birthDigits}_${phoneDigits}_${addressKey}`;
 
     if (!seen.has(uniqueKey)) {
       seen.add(uniqueKey);
@@ -88,6 +93,50 @@ const deduplicateCandidates = (list: Candidate[]): Candidate[] => {
   }
 
   return uniqueList.sort((a, b) => (b.registrationDate || '').localeCompare(a.registrationDate || ''));
+};
+
+export const autoResolveCategory = (cand: Candidate): Candidate => {
+  const logs = cand.consultationLogs || [];
+  if (logs.length === 0) return cand;
+
+  // Find the most recent log chronologically
+  const sortedLogs = [...logs].sort((a, b) => {
+    const dateA = (a.date || '').replace(/[^0-9]/g, '');
+    const dateB = (b.date || '').replace(/[^0-9]/g, '');
+    return dateA.localeCompare(dateB);
+  });
+  const latestLog = sortedLogs[sortedLogs.length - 1];
+  if (!latestLog) return cand;
+
+  const content = (latestLog.content || '').trim();
+
+  // 1. Check if the latest log indicates waiting/re-waiting request
+  const isReWaiting = /(재대기|대기\s*요청|대기\s*희망|재접수|다시\s*대기|대기\s*원함|대기등록|대기\s*등록|대기자\s*등록)/i.test(content);
+  
+  // 2. Check if the latest log indicates connection (연계완료, 서비스 개시, etc.)
+  const isConnected = /(연계완료|서비스\s*시작|서비스시작|연계됨|매칭완료)/i.test(content);
+
+  // 3. Check if the latest log indicates cancellation/deletion (삭제, 종결, 취소, 타기관연계, 보류)
+  const isDeletedOrEnded = /(삭제|종결|취소|포기|타기관|사망|이사가심)/i.test(content);
+  const isSuspended = /(보류|중단|일시\s*중단)/i.test(content);
+
+  let newCategory = cand.category;
+
+  // Prioritize based on the most recent log's message
+  if (isReWaiting) {
+    newCategory = '대기';
+  } else if (isConnected) {
+    newCategory = '연계';
+  } else if (isDeletedOrEnded) {
+    newCategory = '삭제';
+  } else if (isSuspended) {
+    newCategory = '보류';
+  }
+
+  return {
+    ...cand,
+    category: newCategory
+  };
 };
 
 export default function App() {
@@ -194,6 +243,23 @@ export default function App() {
     if (outcome === 'accepted') {
       setIsAppInstalled(true);
       setDeferredPrompt(null);
+    }
+  };
+
+  const handleWipeData = async () => {
+    if (auth.currentUser?.email !== 'kong@suwonrehab.or.kr') {
+      alert('권한이 없습니다.');
+      return;
+    }
+    if (!window.confirm('모든 데이터(이용자명단, 기록지)를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
+    try {
+      await wipeAllData();
+      alert('모든 데이터가 삭제되었습니다.');
+      window.location.reload();
+    } catch (e) {
+      alert('삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -441,13 +507,25 @@ export default function App() {
 
   // Add or updates a candidate entry
   const handleSaveCandidate = async (savedCand: Candidate) => {
-    const existsIndex = candidates.findIndex(c => c.id === savedCand.id);
+    // Check if a new log was added or if it's a new candidate to trigger auto-resolution
+    const oldCand = candidates.find(c => c.id === savedCand.id);
+    let resolvedCand = savedCand;
+
+    const oldLogsCount = oldCand?.consultationLogs?.length || 0;
+    const newLogsCount = savedCand.consultationLogs?.length || 0;
+
+    // Run chronological category auto-resolution only if a new counseling log was added, preserving direct status changes otherwise
+    if (newLogsCount > oldLogsCount || !oldCand) {
+      resolvedCand = autoResolveCategory(savedCand);
+    }
+
+    const existsIndex = candidates.findIndex(c => c.id === resolvedCand.id);
     let updatedList = [...candidates];
     
     if (existsIndex >= 0) {
-      updatedList[existsIndex] = savedCand;
+      updatedList[existsIndex] = resolvedCand;
     } else {
-      updatedList.push(savedCand);
+      updatedList.push(resolvedCand);
     }
     
     setCandidates(updatedList);
@@ -455,7 +533,7 @@ export default function App() {
 
     // Sync to Firestore
     try {
-      await saveCandidateToFirestore(savedCand, staffProfile.email || '직원');
+      await saveCandidateToFirestore(resolvedCand, staffProfile.email || '직원');
     } catch (err) {
       console.warn('Firestore single save notice:', err);
     }
@@ -497,13 +575,15 @@ export default function App() {
     let addedCount = 0;
     let updatedCount = 0;
 
-    // Create a map of existing candidates by unique key (Name + BirthDate digits)
+    // Create a map of existing candidates by unique key (Name + BirthDate digits + Phone + Address)
     const existingMap = new Map<string, Candidate>();
     candidates.forEach(c => {
       if (!c.name) return;
       const name = c.name.trim().replace(/\s+/g, '');
       const birth = (c.birthDate || '').replace(/[^0-9]/g, '');
-      existingMap.set(`${name}_${birth}`, c);
+      const phone = (c.phone || '').replace(/[^0-9]/g, '');
+      const address = `${c.addressCity || ''}${c.addressDistrict || ''}${c.addressDong || ''}${c.addressDetail || ''}`.trim().replace(/\s+/g, '');
+      existingMap.set(`${name}_${birth}_${phone}_${address}`, c);
     });
 
     const updatedList = [...candidates];
@@ -512,7 +592,9 @@ export default function App() {
       if (!excelCand.name) return;
       const name = excelCand.name.trim().replace(/\s+/g, '');
       const birth = (excelCand.birthDate || '').replace(/[^0-9]/g, '');
-      const key = `${name}_${birth}`;
+      const phone = (excelCand.phone || '').replace(/[^0-9]/g, '');
+      const address = `${excelCand.addressCity || ''}${excelCand.addressDistrict || ''}${excelCand.addressDong || ''}${excelCand.addressDetail || ''}`.trim().replace(/\s+/g, '');
+      const key = `${name}_${birth}_${phone}_${address}`;
 
       if (existingMap.has(key)) {
         // 1. Existing candidate: Perform smart merge of modified/new fields
@@ -569,16 +651,23 @@ export default function App() {
           }
         });
 
+        // Resolve category chronologically based on newly merged logs for imported candidate
+        const resolvedCand = autoResolveCategory(mergedCand);
+        if (resolvedCand.category !== oldCand.category) {
+          isModified = true;
+        }
+
         if (isModified) {
           const idx = updatedList.findIndex(c => c.id === oldCand.id);
           if (idx >= 0) {
-            updatedList[idx] = mergedCand;
+            updatedList[idx] = resolvedCand;
           }
           updatedCount++;
         }
       } else {
-        // 2. Pure new candidate: Append
-        updatedList.push(excelCand);
+        // 2. Pure new candidate: Append with chronological auto-resolution
+        const resolvedNewCand = autoResolveCategory(excelCand);
+        updatedList.push(resolvedNewCand);
         addedCount++;
       }
     });
@@ -848,6 +937,14 @@ export default function App() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-black text-slate-900 tracking-tight">이용대기명단</h1>
+                {auth.currentUser?.email === 'kong@suwonrehab.or.kr' && (
+                  <button 
+                    onClick={handleWipeData}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded text-xs ml-2"
+                  >
+                    데이터 초기화
+                  </button>
+                )}
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
                   <ShieldCheck className="w-3 h-3 text-blue-600" />
                   개인정보보호 시스템 적용

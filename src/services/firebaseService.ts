@@ -295,3 +295,30 @@ export const subscribeToMatchingRecords = (
     }
   );
 };
+
+// Wipe all data from Firestore (Admin-like function for authorized user)
+export const wipeAllData = async (): Promise<void> => {
+  try {
+    // 1. Reset candidate_master/main
+    const masterDocRef = doc(db, 'candidate_master', 'main');
+    await setDoc(masterDocRef, {
+      list: [],
+      updatedAt: new Date().toISOString(),
+      updatedBy: '초기화'
+    });
+
+    // 2. Delete all matching_records
+    const recordsRef = collection(db, 'matching_records');
+    const snapshot = await getDocs(recordsRef);
+    const batch = writeBatch(db);
+    snapshot.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+    await batch.commit();
+    
+    console.log('모든 데이터가 성공적으로 삭제되었습니다.');
+  } catch (err: any) {
+    console.error('데이터 삭제 중 오류 발생:', err);
+    throw err;
+  }
+};
